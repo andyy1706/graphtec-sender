@@ -1,0 +1,28 @@
+# Secrets
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Build
+build/
+dist/
+*.exe
+
+# Laufzeitdaten
+*.log
+*.csv
+*.xlsx
+
+# Editor/OS
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
