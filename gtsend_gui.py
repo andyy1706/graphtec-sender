@@ -809,6 +809,9 @@ class App(tk.Tk):
         if self.busy:
             return
         host, port = self.cfg.get("host", gt.DEFAULT_HOST), int(self.cfg.get("port", gt.DEFAULT_PORT))
+        if not host:
+            self._ui(lambda: self._set_pill(False, "kein Plotter eingestellt"))
+            return
         try:
             socket.create_connection((host, port), timeout=1.5).close()
             ok = True

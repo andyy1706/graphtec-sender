@@ -17,12 +17,13 @@ Beispiele:
 
 import argparse
 import math
+import os
 import re
 import socket
 import sys
 import xml.etree.ElementTree as ET
 
-DEFAULT_HOST = "192.0.2.10"
+DEFAULT_HOST = os.environ.get("GTSEND_HOST", "")  # IP des Plotters, z. B. setx GTSEND_HOST 192.168.1.50
 DEFAULT_PORT = 9100
 UNITS_PER_MM = 40.0          # HP-GL: 1 Plottereinheit = 0,025 mm
 FLATTEN_TOL_MM = 0.05        # max. Abweichung beim Zerlegen von Kurven
@@ -805,7 +806,7 @@ def main():
     ap.add_argument("--vc-port", type=int, default=VC_PORT, help="Steuerport von VectorCraft (Standard 7979)")
     ap.add_argument("--test", action="store_true", help="Testmuster schneiden (Quadrat + Dreieck)")
     ap.add_argument("--test-size", type=float, default=20.0, help="Kantenlänge des Testquadrats in mm (Standard 20)")
-    ap.add_argument("--host", default=DEFAULT_HOST, help=f"IP des Plotters (Standard {DEFAULT_HOST})")
+    ap.add_argument("--host", default=DEFAULT_HOST, help="IP des Plotters (Standard: Umgebungsvariable GTSEND_HOST)")
     ap.add_argument("--port", type=int, default=DEFAULT_PORT, help="TCP-Port (Standard 9100)")
     ap.add_argument("--mirror", action="store_true", help="spiegeln (z. B. Flex-/Flockfolie)")
     ap.add_argument("--rotate", type=int, default=0, choices=[0, 90, 180, 270], help="drehen in Grad")
@@ -830,6 +831,8 @@ def main():
     wg.add_argument("--weed-v", metavar="MM,MM", help="senkrechte Linien, mm ab linker Kante Entgitterfläche")
     wg.add_argument("--weed-gap", type=float, default=1.0, help="Abstand der Linien zum Motiv in mm (Standard 1)")
     a = ap.parse_args()
+    if not a.host and not a.dry_run:
+        ap.error("kein Plotter angegeben: --host setzen oder Umgebungsvariable GTSEND_HOST")
 
     if a.media:
         try:

@@ -34,6 +34,14 @@ Ablauf: SVG → Linienzüge (mm) → HP-GL → Plotter
 | `gtprobe.py` | Fragt Schneidebereich/Status des Plotters ab (bewegt nichts) |
 | `vcprobe.py` | Prüft die Fernsteuerung von VectorCraft |
 
+## Plotter-Adresse
+
+Die IP des Plotters steht nicht im Code. Reihenfolge:
+
+1. `--host` auf der Kommandozeile
+2. Umgebungsvariable `GTSEND_HOST` (dauerhaft: `setx GTSEND_HOST 192.168.1.50`)
+3. In der Oberfläche: Feld „Plotter“, wird in `%APPDATA%\gtsend\settings.json` gespeichert
+
 ## Nutzung
 
 ```bash

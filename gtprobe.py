@@ -3,10 +3,11 @@
 gtprobe.py - fragt den Graphtec-Plotter nach Schneidebereich/Folienmaß.
 Sendet NUR Abfragebefehle, bewegt weder Kopf noch Messer.
 
-  python gtprobe.py              # Plotter 192.0.2.10:9100
+  python gtprobe.py              # Plotter aus Umgebungsvariable GTSEND_HOST, Port 9100
   python gtprobe.py --host 1.2.3.4
 """
 import argparse
+import os
 import socket
 import time
 
@@ -47,7 +48,8 @@ def ask(host, port, cmd, wait):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--host", default="192.0.2.10")
+    ap.add_argument("--host", default=os.environ.get("GTSEND_HOST"),
+                    required=not os.environ.get("GTSEND_HOST"), help="IP des Plotters (Standard: GTSEND_HOST)")
     ap.add_argument("--port", type=int, default=9100)
     ap.add_argument("--wait", type=float, default=2.0, help="Sekunden auf Antwort warten")
     a = ap.parse_args()
