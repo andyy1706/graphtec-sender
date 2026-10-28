@@ -1,3 +1,5 @@
+<img src="assets/logo-wordmark.svg" alt="Graphtec Sender" height="96">
+
 # Graphtec Sender
 
 SVG-Dateien direkt per Netzwerk (TCP 9100) an einen Graphtec-Schneideplotter
@@ -33,6 +35,7 @@ Ablauf: SVG → Linienzüge (mm) → HP-GL → Plotter
 | `build_exe.bat` | Baut `dist\GraphtecSender.exe` mit PyInstaller |
 | `gtprobe.py` | Fragt Schneidebereich/Status des Plotters ab (bewegt nichts) |
 | `vcprobe.py` | Prüft die Fernsteuerung von VectorCraft |
+| `assets/` | Logo (`logo.svg`, `logo-wordmark.svg`), Symbole (`icon-*.png`, `graphtec_sender.ico`); neu erzeugen mit `python assets\make_icons.py` (braucht Inkscape) |
 
 ## Plotter-Adresse
 

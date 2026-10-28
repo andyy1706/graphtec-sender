@@ -62,9 +62,9 @@ if errorlevel 1 (
 echo.
 echo Baue GraphtecSender.exe ...
 if defined PY (
-    "!PY!" -m PyInstaller --noconfirm --clean --onefile --windowed --name GraphtecSender --distpath "%DIR%dist" --workpath "%WORK%" --specpath "%WORK%" --hidden-import gtsend --paths "%DIR%." "%DIR%gtsend_gui.py"
+    "!PY!" -m PyInstaller --noconfirm --clean --onefile --windowed --name GraphtecSender --distpath "%DIR%dist" --workpath "%WORK%" --specpath "%WORK%" --icon "%DIR%assetsgraphtec_sender.ico" --add-data "%DIR%assets;assets" --hidden-import gtsend --paths "%DIR%." "%DIR%gtsend_gui.py"
 ) else (
-    "!PYI!" --noconfirm --clean --onefile --windowed --name GraphtecSender --distpath "%DIR%dist" --workpath "%WORK%" --specpath "%WORK%" --hidden-import gtsend --paths "%DIR%." "%DIR%gtsend_gui.py"
+    "!PYI!" --noconfirm --clean --onefile --windowed --name GraphtecSender --distpath "%DIR%dist" --workpath "%WORK%" --specpath "%WORK%" --icon "%DIR%assetsgraphtec_sender.ico" --add-data "%DIR%assets;assets" --hidden-import gtsend --paths "%DIR%." "%DIR%gtsend_gui.py"
 )
 if errorlevel 1 goto fail
 if not exist "%DIR%dist\GraphtecSender.exe" goto fail

@@ -35,6 +35,8 @@ import gtsend as gt  # noqa: E402
 APP = "Graphtec Sender"
 # Ordner des Programms: bei der EXE der Ordner der EXE, sonst der des Skripts
 HERE = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, "frozen", False) else __file__))
+# Logo/Symbole: in der EXE im Entpack-Ordner von PyInstaller, sonst neben dem Skript
+ASSETS = os.path.join(getattr(sys, "_MEIPASS", HERE), "assets")
 IPC_PORT = 7978                 # Übergabe an ein bereits laufendes Fenster
 CFG_DIR = os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "gtsend")
 CFG_FILE = os.path.join(CFG_DIR, "settings.json")
@@ -115,6 +117,17 @@ def enable_dpi_awareness():
             ctypes.windll.user32.SetProcessDPIAware()
         except (AttributeError, OSError):
             pass
+
+
+def set_app_id():
+    """Eigenes Taskleisten-Symbol statt dem von python(w).exe."""
+    if os.name != "nt":
+        return
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Graphtec.Sender")
+    except (AttributeError, OSError):
+        pass
 
 
 class Tooltip:
@@ -223,6 +236,7 @@ class ScrollFrame(ttk.Frame):
 class App(tk.Tk):
     def __init__(self, start_file=None):
         enable_dpi_awareness()
+        set_app_id()
         super().__init__()
         self.title(APP)
         self.geometry("1200x780")
@@ -402,7 +416,6 @@ class App(tk.Tk):
         self.configure(background=p["bg"])
         for cv, key in getattr(self, "_tk_bg", []):
             cv.configure(background=p[key])
-        self._draw_logo()
         self._restyle_status()
         if self._pill_state is not None:
             self._set_pill(*self._pill_state)
@@ -424,48 +437,27 @@ class App(tk.Tk):
             pass
 
     def _set_window_icon(self):
-        """Programm-Symbol: blaues Quadrat mit Messer."""
+        """Programm-Symbol aus assets (Klinge mit Schnittlinie), hängt nicht vom Design ab."""
+        if getattr(self, "_icons", None):
+            return
         try:
-            n = 32
-            img = tk.PhotoImage(master=self, width=n, height=n)
-            acc = self.pal["accent"]
-            rows = []
-            for y in range(n):
-                row = []
-                for x in range(n):
-                    cx = min(max(x, 7), n - 8)
-                    cy = min(max(y, 7), n - 8)
-                    inside = (x - cx) ** 2 + (y - cy) ** 2 <= 49
-                    # Messerklinge: dicke Diagonale + Spitze
-                    t = max(0.0, min(1.0, ((x - 9) * 14 + (9 - (n - 1 - y)) * -14) / (2 * 14 * 14)))
-                    px, py = 9 + 14 * t, (n - 10) - 14 * t
-                    blade = (x - px) ** 2 + (y - py) ** 2 <= 4.5
-                    row.append("#ffffff" if inside and blade else acc if inside else "#000000")
-                rows.append("{" + " ".join(row) + "}")
-            img.put(" ".join(rows))
-            for y in range(n):
-                for x in range(n):
-                    cx = min(max(x, 7), n - 8)
-                    cy = min(max(y, 7), n - 8)
-                    if (x - cx) ** 2 + (y - cy) ** 2 > 49:
-                        img.transparency_set(x, y, True)
-            self._icon = img
-            self.iconphoto(True, img)
-        except (tk.TclError, AttributeError):
+            ico = os.path.join(ASSETS, "graphtec_sender.ico")
+            if os.name == "nt" and os.path.exists(ico):
+                self.iconbitmap(default=ico)       # alle Größen, scharf in Taskleiste/Alt+Tab
+            self._icons = [tk.PhotoImage(master=self, file=os.path.join(ASSETS, f"icon-{n}.png"))
+                           for n in (256, 48, 32, 16)]
+            self.iconphoto(True, *self._icons)
+        except tk.TclError:
             pass
 
-    def _draw_logo(self):
-        cv = getattr(self, "logo", None)
-        if cv is None:
-            return
-        p = self.pal
-        cv.delete("all")
-        cv.configure(background=p["surface"])
-        r, w = 8, 30
-        pts = [r, 0, w - r, 0, w, 0, w, r, w, w - r, w, w, w - r, w, r, w, 0, w, 0, w - r, 0, r, 0, 0]
-        cv.create_polygon(pts, smooth=True, fill=p["accent"], outline="")
-        cv.create_line(9, 21, 21, 9, fill="#ffffff", width=3, capstyle="round")
-        cv.create_line(8, 23, 13, 23, fill="#ffffff", width=2, capstyle="round")
+    def _logo_image(self):
+        """Logo für die Kopfzeile, Größe passend zur Bildschirmskalierung."""
+        want = 32 * self.winfo_fpixels("1i") / 96
+        size = min((32, 48, 64, 128), key=lambda n: abs(n - want))
+        try:
+            return tk.PhotoImage(master=self, file=os.path.join(ASSETS, f"icon-{size}.png"))
+        except tk.TclError:
+            return None
 
     # ------------------------------------------------------------------ UI
     def _field(self, parent, row, col, label, var, unit="", width=7, tip=None):
@@ -491,8 +483,9 @@ class App(tk.Tk):
         # ---------------- Kopfzeile
         hdr = ttk.Frame(self, style="Header.TFrame", padding=(16, 10, 12, 10))
         hdr.grid(row=0, column=0, columnspan=2, sticky="ew")
-        self.logo = tk.Canvas(hdr, width=30, height=30, highlightthickness=0, bd=0)
-        self.logo.pack(side="left")
+        self._logo = self._logo_image()
+        if self._logo:
+            ttk.Label(hdr, image=self._logo, style="Header.TLabel").pack(side="left")
         tbox = ttk.Frame(hdr, style="Header.TFrame")
         tbox.pack(side="left", padx=(10, 0))
         ttk.Label(tbox, text=APP, style="Title.TLabel").pack(anchor="w")
